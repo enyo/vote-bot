@@ -1,0 +1,5 @@
+name: vote_bot
+version: 0.1.0
+dependencies:
+  http: any
+  logging: any
