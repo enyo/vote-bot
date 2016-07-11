@@ -5,7 +5,7 @@ const maxErrorCount = 10;
 const voteInterval = const Duration(minutes: 30);
 
 /// By how much time the next vote could be earlier or later than the default vote interval
-const voteIntervalTolerance = const Duration(minutes: 3);
+const voteIntervalTolerance = const Duration(minutes: 10);
 
 const url = 'https://www.vcoe.at/voting/online-voting-vcoe-mobilitaetspreis-kategorie-barrierefreie-und-sozial-gerechte-mobilitaet';
 

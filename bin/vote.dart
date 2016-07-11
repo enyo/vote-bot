@@ -10,6 +10,7 @@ import 'package:vote_bot/settings.dart';
 import 'dart:convert';
 
 var log = new Logger('VoteBot');
+math.Random _rng = new math.Random();
 
 main() async {
   Logger.root.onRecord.listen(print);
@@ -18,21 +19,26 @@ main() async {
   await vote();
 }
 
-int errorCount = 0;
+int totalVotes = 0, errorCount = 0;
 
 Future vote() async {
   log.info('Voting now...');
+  var nextVoteDuration = new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
   try {
     final voteInformation = await getVoteInformation();
     log.info('Got request token ${voteInformation.token}');
     await postVote(voteInformation);
     errorCount = 0;
+    totalVotes ++;
+    log.info('Finished voting. Total votes: $totalVotes. Next vote in $nextVoteDuration');
   } catch (e) {
     log.warning('There was an error: $e');
     errorCount++;
   }
   if (errorCount >= maxErrorCount) {
-    log.severe('Too many failed attempts. Quitting now.');
+    log.severe('Too many failed attempts. Quitting now with total votes: $totalVotes.');
+  } else {
+    new Timer(nextVoteDuration, vote);
   }
 }
 
@@ -55,22 +61,25 @@ Future<VoteInformation> getVoteInformation() async {
 }
 
 Future postVote(VoteInformation voteInformation) async {
-  var body = 'FORM_SUBMIT=poll_29&REQUEST_TOKEN=${voteInformation.token}&options=&options=126';
-  print(voteInformation.cookies.first.toString());
-  throw 'a';
-  var response = await http.post(url,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Host': 'www.vcoe.at',
-        'Origin': 'https://www.vcoe.at',
-        'User-Agent': getRandomUserAgent()
-      },
-      body: body);
+  final body = 'FORM_SUBMIT=poll_29&REQUEST_TOKEN=${voteInformation.token}&options=&options=126';
+
+  HttpClient client = new HttpClient();
+  var uri = Uri.parse(url);
+  var clientRequest = await client.postUrl(uri);
+  clientRequest.headers
+    ..add('Content-Type', 'application/x-www-form-urlencoded')
+    ..add('Host', 'www.vcoe.at')
+    ..add('Origin', 'https://www.vcoe.at')
+    ..add('User-Agent', getRandomUserAgent());
+  voteInformation.cookies.forEach((cookie) => clientRequest.cookies.add(cookie));
+  clientRequest.write(body);
+  var response = await clientRequest.close();
+
+  var responseText = UTF8.decode(await response.fold([], (List prev, bytes) => new List.from(prev)..addAll(bytes)));
+
   if (response.statusCode < 200 || response.statusCode >= 400) {
-    throw 'Voting response was not positive:\n${response.body}';
+    throw 'Voting response was not positive:\n${responseText}';
   }
 }
 
-
-math.Random _rng = new math.Random();
 String getRandomUserAgent() => userAgents[_rng.nextInt(userAgents.length)];
