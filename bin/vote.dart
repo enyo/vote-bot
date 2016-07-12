@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:vote_bot/settings.dart';
 import 'dart:convert';
