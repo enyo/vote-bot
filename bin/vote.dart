@@ -23,13 +23,14 @@ int totalVotes = 0, errorCount = 0;
 
 Future vote() async {
   log.info('Voting now...');
-  var nextVoteDuration = new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
+  var nextVoteDuration =
+      new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
   try {
     final voteInformation = await getVoteInformation();
     log.info('Got request token ${voteInformation.token}');
     await postVote(voteInformation);
     errorCount = 0;
-    totalVotes ++;
+    totalVotes++;
     log.info('Finished voting. Total votes: $totalVotes. Next vote in $nextVoteDuration');
   } catch (e) {
     log.warning('There was an error: $e');
@@ -45,19 +46,23 @@ Future vote() async {
 class VoteInformation {
   final String token;
   final List<Cookie> cookies;
-  VoteInformation(this.token, this.cookies);
+  final String userAgent;
+  VoteInformation(this.token, this.cookies, this.userAgent);
 }
 
 final tokenRegex = new RegExp(r'name\=\"REQUEST_TOKEN\"\s+value\=\"([a-zA-Z0-9]+)\"');
 Future<VoteInformation> getVoteInformation() async {
   HttpClient client = new HttpClient();
-  var response = await (await client.getUrl(Uri.parse(url))).close();
+  var userAgent = getRandomUserAgent();
+  var request = await client.getUrl(Uri.parse(url));
+  request.headers..add('User-Agent', userAgent);
+  var response = await request.close();
   var responseText = UTF8.decode(await response.fold([], (List prev, bytes) => new List.from(prev)..addAll(bytes)));
 
   final match = tokenRegex.firstMatch(responseText);
   if (match == null) throw 'No token found';
 
-  return new VoteInformation(match.group(1), response.cookies);
+  return new VoteInformation(match.group(1), response.cookies, userAgent);
 }
 
 Future postVote(VoteInformation voteInformation) async {
@@ -70,7 +75,7 @@ Future postVote(VoteInformation voteInformation) async {
     ..add('Content-Type', 'application/x-www-form-urlencoded')
     ..add('Host', 'www.vcoe.at')
     ..add('Origin', 'https://www.vcoe.at')
-    ..add('User-Agent', getRandomUserAgent());
+    ..add('User-Agent', voteInformation.userAgent);
   voteInformation.cookies.forEach((cookie) => clientRequest.cookies.add(cookie));
   clientRequest.write(body);
   var response = await clientRequest.close();
