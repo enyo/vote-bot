@@ -83,7 +83,19 @@ Future postVote(VoteInformation voteInformation) async {
 
   if (response.statusCode < 200 || response.statusCode >= 400) {
     throw 'Voting response was not positive:\n${responseText}';
+  } else {
+    printStats(responseText);
   }
+}
+
+printStats(String responseText) {
+  var regex = new RegExp(r'\"result_option\"\>(.*?)\<\/div\>[\s\S]*?result_prct\"\>(\d+)');
+  var matches = regex.allMatches(responseText);
+
+  log.info(matches.map((match) {
+    var name = match.group(1).split(' ').first, percentage = match.group(2);
+    return ('$name:$percentage%');
+  }).join('  –  '));
 }
 
 String getRandomUserAgent() => userAgents[_rng.nextInt(userAgents.length)];
