@@ -52,7 +52,7 @@ Duration _getNextVoteDuration() {
   } else {
     if (_rng.nextInt(voteCountBeforeLonger) == 0) {
       var nextVoteDurationMs = voteInterval.inMilliseconds + _rng.nextInt(voteIntervalTolerance.inMilliseconds);
-      nextVoteDurationMs += (nextVoteDurationMs * 1.5).round();
+      nextVoteDurationMs += (nextVoteDurationMs * 0.5).round();
       nextVoteDuration = new Duration(milliseconds: nextVoteDurationMs);
       log.info('Next vote in $nextVoteDuration (a bit longer so it is alternating a bit)');
     } else {
