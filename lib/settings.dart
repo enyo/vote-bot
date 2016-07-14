@@ -2,10 +2,14 @@ library vote_bot.definitions;
 
 const maxErrorCount = 10;
 
-const voteInterval = const Duration(minutes: 50);
+const voteInterval = const Duration(minutes: 30);
 
 /// By how much time the next vote could be earlier or later than the default vote interval
-const voteIntervalTolerance = const Duration(minutes: 40);
+const voteIntervalTolerance = const Duration(minutes: 20);
+
+/// The best variable name I ever came up with
+/// This defines how often a vote should take a bit longer than usual
+const voteCountBeforeLonger = 5;
 
 const url = 'https://www.vcoe.at/voting/online-voting-vcoe-mobilitaetspreis-kategorie-barrierefreie-und-sozial-gerechte-mobilitaet';
 

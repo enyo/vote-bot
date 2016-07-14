@@ -22,25 +22,16 @@ int totalVotes = 0, errorCount = 0;
 
 Future vote() async {
   log.info('Voting now...');
-  var now = new DateTime.now();
 
   Duration nextVoteDuration;
-  var nightTime = false;
-  if (now.hour < 6 || now.hour > 23) {
-    nightTime = true;
-    nextVoteDuration = new Duration(minutes: 60 * 3 + _rng.nextInt(90));
-  } else {
-    nextVoteDuration =
-        new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
-  }
   try {
     final voteInformation = await getVoteInformation();
     log.info('Got request token ${voteInformation.token}');
     await postVote(voteInformation);
     errorCount = 0;
     totalVotes++;
-    log.info('Finished voting. Total votes: $totalVotes. Next vote in $nextVoteDuration '
-        '${nightTime ? '(because of night time)' : ''}');
+    log.info('Finished voting. Total votes: $totalVotes.');
+    nextVoteDuration = _getNextVoteDuration();
   } catch (e) {
     log.warning('There was an error: $e');
     errorCount++;
@@ -50,6 +41,28 @@ Future vote() async {
   } else {
     new Timer(nextVoteDuration, vote);
   }
+}
+
+Duration _getNextVoteDuration() {
+  var now = new DateTime.now();
+  Duration nextVoteDuration;
+  if (now.hour < 6 || now.hour > 23) {
+    nextVoteDuration = new Duration(minutes: 60 * 3 + _rng.nextInt(90));
+    log.info('Next vote in $nextVoteDuration (because of night time)');
+  } else {
+    if (_rng.nextInt(voteCountBeforeLonger) == 0) {
+      var nextVoteDurationMs = voteInterval.inMilliseconds + _rng.nextInt(voteIntervalTolerance.inMilliseconds);
+      nextVoteDurationMs += (nextVoteDurationMs * 1.5).round();
+      nextVoteDuration = new Duration(milliseconds: nextVoteDurationMs);
+      log.info('Next vote in $nextVoteDuration (a bit longer so it is alternating a bit)');
+    } else {
+      nextVoteDuration =
+          new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
+      log.info('Next vote in $nextVoteDuration');
+    }
+  }
+
+  return nextVoteDuration;
 }
 
 class VoteInformation {
