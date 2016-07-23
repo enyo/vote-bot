@@ -51,15 +51,13 @@ Duration _getNextVoteDuration() {
     nextVoteDuration = new Duration(minutes: 40 + _rng.nextInt(20));
     log.info('Next vote in $nextVoteDuration (because of night time)');
   } else {
+    nextVoteDuration =
+    new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
+    log.info('Next vote in $nextVoteDuration');
+
     if (_rng.nextInt(voteCountBeforeLonger) == 0) {
-      var nextVoteDurationMs = voteInterval.inMilliseconds + _rng.nextInt(voteIntervalTolerance.inMilliseconds);
-      nextVoteDurationMs += (nextVoteDurationMs * 0.5).round();
-      nextVoteDuration = new Duration(milliseconds: nextVoteDurationMs);
-      log.info('Next vote in $nextVoteDuration (a bit longer so it is alternating a bit)');
-    } else {
-      nextVoteDuration =
-          new Duration(milliseconds: voteInterval.inMilliseconds - _rng.nextInt(voteIntervalTolerance.inMilliseconds));
-      log.info('Next vote in $nextVoteDuration');
+      nextVoteDuration *= 2;
+      log.info('(a bit longer so it is alternating a bit)');
     }
   }
 
