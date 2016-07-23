@@ -39,6 +39,7 @@ Future vote() async {
   if (errorCount >= maxErrorCount) {
     log.severe('Too many failed attempts. Quitting now with total votes: $totalVotes.');
   } else {
+    if (nextVoteDuration == null) nextVoteDuration = _getNextVoteDuration();
     new Timer(nextVoteDuration, vote);
   }
 }
