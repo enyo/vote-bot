@@ -47,7 +47,7 @@ Duration _getNextVoteDuration() {
   var now = new DateTime.now();
   Duration nextVoteDuration;
   if (now.hour < 6 || now.hour > 23) {
-    nextVoteDuration = new Duration(minutes: 60 * 3 + _rng.nextInt(90));
+    nextVoteDuration = new Duration(minutes: 40 + _rng.nextInt(20));
     log.info('Next vote in $nextVoteDuration (because of night time)');
   } else {
     if (_rng.nextInt(voteCountBeforeLonger) == 0) {
